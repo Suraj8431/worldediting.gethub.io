@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+        .content-view {
+            flex: 2;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            max-width: 90%;
+            max-height: 90%;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+        }
+        .editor-tools {
+            flex: 1;
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        .editor-tools label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .editor-tools input[type="range"] {
+            flex: 1;
+            margin-left: 10px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-view">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="editor-tools">
+        <h2>Photo Editor</h2>
+        <input type="file" id="file-input" accept="image/*">
+        <label>Brightness: <input type="range" id="brightness" min="0" max="200" value="100"></label>
+        <label>Contrast: <input type="range" id="contrast" min="0" max="200" value="100"></label>
+        <label>Saturation: <input type="range" id="saturation" min="0" max="200" value="100"></label>
+        <label>Sharpness: <input type="range" id="sharpness" min="0" max="100" value="50"></label>
+        <label>Skin Tone: <input type="range" id="skin-tone" min="-100" max="100" value="0"></label>
+        <label>Blue Tone: <input type="range" id="blue-tone" min="-100" max="100" value="0"></label>
+        <label>Green Tone: <input type="range" id="green-tone" min="-100" max="100" value="0"></label>
+        <label>Tint: <input type="range" id="tint" min="-100" max="100" value="0"></label>
+        <div class="buttons">
+            <button onclick="resetFilters()">Reset</button>
+            <button onclick="saveImage()">Save</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const fileInput = document.getElementById('file-input');
+
+        const brightnessInput = document.getElementById('brightness');
+        const contrastInput = document.getElementById('contrast');
+        const saturationInput = document.getElementById('saturation');
+        const sharpnessInput = document.getElementById('sharpness');
+        const skinToneInput = document.getElementById('skin-tone');
+        const blueToneInput = document.getElementById('blue-tone');
+        const greenToneInput = document.getElementById('green-tone');
+        const tintInput = document.getElementById('tint');
+
+        let originalImage = new Image();
+        let filters = {
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            sharpness: 50,
+            skinTone: 0,
+            blueTone: 0,
+            greenTone: 0,
+            tint: 0
+        };
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                originalImage.src = fileURL;
+                originalImage.onload = () => {
+                    canvas.width = originalImage.width;
+                    canvas.height = originalImage.height;
+                    ctx.drawImage(originalImage, 0, 0);
+                    applyFilters();
+                };
+            }
+        });
+
+        function applyFilters() {
+            ctx.filter = `
+                brightness(${filters.brightness}%)
+                contrast(${filters.contrast}%)
+                saturate(${filters.saturation}%)
+                hue-rotate(${filters.tint}deg)
+            `;
+            ctx.drawImage(originalImage, 0, 0);
+        }
+
+        function resetFilters() {
+            filters = {
+                brightness: 100,
+                contrast: 100,
+                saturation: 100,
+                sharpness: 50,
+                skinTone: 0,
+                blueTone: 0,
+                greenTone: 0,
+                tint: 0
+            };
+            brightnessInput.value = 100;
+            contrastInput.value = 100;
+            saturationInput.value = 100;
+            sharpnessInput.value = 50;
+            skinToneInput.value = 0;
+            blueToneInput.value = 0;
+            greenToneInput.value = 0;
+            tintInput.value = 0;
+            applyFilters();
+        }
+
+        function saveImage() {
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        [brightnessInput, contrastInput, saturationInput, tintInput].forEach(input => {
+            input.addEventListener('input', (event) => {
+                filters[event.target.id] = event.target.value;
+                applyFilters();
+            });
+        });
+    </script>
+</body>
+</html>
